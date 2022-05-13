@@ -1,0 +1,64 @@
+FROM php:7.4-cli
+LABEL maintainer="Eric Jacolin <eric@jacolin.net>"
+
+# Install PHP modules
+RUN apt-get update \
+    # generic libraries
+    && apt-get install -y \
+        curl \
+        libonig-dev \
+        libssl-dev \
+        libxml2-dev \
+        libyaml-dev \
+        nano \
+    # PHP modules
+    && docker-php-ext-install \
+        exif \
+        gettext \
+        intl \
+        mbstring \
+        pdo_mysql \
+    # APCu
+    && echo '' | pecl install apcu-5.1.18 \
+        && docker-php-ext-enable apcu \
+        && echo "extension=apcu.so" > /usr/local/etc/php/php.ini \
+    # gd
+    && apt-get install -y \
+        libfreetype6-dev \
+        libjpeg62-turbo-dev \
+        libpng-dev \
+    && docker-php-ext-configure gd \
+        --with-freetype \
+        --with-jpeg \
+        && docker-php-ext-install -j$(nproc) gd \
+    # HTMLdoc
+    && apt-get install -y htmldoc \
+    # imagemagick
+    && apt-get install -y --force-yes \
+        libmagickwand-dev --no-install-recommends \
+        imagemagick \
+        # Inkscape is needed if you want to read SVG files created by Inkscape
+        inkscape \
+        && pecl install imagick-3.7.0 \
+        && docker-php-ext-enable imagick \
+    # imap
+    && apt-get install -y libc-client-dev libkrb5-dev \
+        && docker-php-ext-configure imap --with-kerberos --with-imap-ssl \
+    # xslt
+    && apt-get install -y libxslt-dev \
+        && docker-php-ext-install xsl \
+    # YAML extension
+    && pecl install yaml-2.0.4 && echo "extension=yaml.so" > /usr/local/etc/php/conf.d/ext-yaml.ini \
+    # zip
+    && apt-get install -y \
+        libzip-dev \
+        zip \
+        && docker-php-ext-install zip \
+    # Purge apt
+    && apt-get clean -y && apt-get autoclean -y && apt-get autoremove -y \
+        && rm -rf /var/lib/apt/lists/*
+
+# To write files in the mounted volume
+WORKDIR "/app"
+ENTRYPOINT ["php"]
+CMD ["--version"]

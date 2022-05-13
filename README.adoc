@@ -1,0 +1,44 @@
+= PHP CLI on Docker
+
+== Objectives
+
+* A PHP executable on Docker, to run PHP scripts on the fly with php-cli
+* Create the container and remove it immediately after the script execution
+* To test particular PHP versions, configurations, extensions and build processes
+
+== Build the image
+
+* 7.4-large: includes libraries for dynamic image generation such as needed in Quoteguy
+
+----
+docker build -f Dockerfile.7-4-large \
+    -t php-cli:7.4-large \
+    .
+----
+
+== Create command line alias
+
+To create a permanent Bash alias:
+
+* Open `~/.bash_aliases` (create if does not exist)
+* Append `alias php='docker container run --rm -v $(pwd):/app/ --user $(id -u):$(id -g) php-cli:7.4-large'`
+* Save and close the file
+* Activate alias by executing `source ~/.bash_aliases`
+
+== Executing scripts
+
+Just go to the directory with your code and run:
+
+`docker container run --rm -v $(pwd):/app/ --user $(id -u):$(id -g) php-cli:7.4-large test.php`
+
+or with the alias:
+
+`php test.php`
+
+* `--rm` will remove the container after execution
+* `-v $(pwd):/app/` will mount the current directory as volume
+* `php-cli-docker:74-large` is the image
+* `test.php` is the command which will be executed after the container is created
+* `test.php` is the script to execute
+* In general we want file outputs to have the same permission as the local user $USER. Hence the `--user $(id -u):$(id -g)` option.
+* Ensure the directory where you want to write on the host has permissions 0777.
