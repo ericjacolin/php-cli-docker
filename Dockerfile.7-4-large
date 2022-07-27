@@ -1,62 +1,55 @@
-FROM php:7.4-cli
-LABEL maintainer="Eric Jacolin <eric@jacolin.net>"
+FROM phusion/baseimage:jammy-1.0.0
+MAINTAINER Eric Jacolin <eric.jacolin@free.fr>
 
-# Install PHP modules
-RUN apt-get update \
-    # generic libraries
-    && apt-get install -y \
+# Install PHP-CLI 7.4
+RUN add-apt-repository ppa:ondrej/php \
+    && apt -y update \
+    # Generic utilities
+    && apt install -q -y \
         curl \
+        htmldoc \
         libonig-dev \
         libssl-dev \
         libxml2-dev \
         libyaml-dev \
         nano \
-    # PHP modules
-    && docker-php-ext-install \
-        exif \
-        gettext \
-        intl \
-        mbstring \
-        pdo_mysql \
-    # APCu
-    && echo '' | pecl install apcu-5.1.18 \
-        && docker-php-ext-enable apcu \
-        && echo "extension=apcu.so" > /usr/local/etc/php/php.ini \
-    # gd
-    && apt-get install -y \
-        libfreetype6-dev \
-        libjpeg62-turbo-dev \
-        libpng-dev \
-    && docker-php-ext-configure gd \
-        --with-freetype \
-        --with-jpeg \
-        && docker-php-ext-install -j$(nproc) gd \
-    # HTMLdoc
-    && apt-get install -y htmldoc \
-    # imagemagick
-    && apt-get install -y --force-yes \
-        libmagickwand-dev --no-install-recommends \
+        software-properties-common \
+        wget \
+    # PHP common modules
+    && apt install -q -y \
+        php7.4 \
+        php7.4-apcu \
+        php7.4-cli \
+        php7.4-curl \
+        php7.4-intl \
+        php7.4-gd \
+        php7.4-imap \
+        php7.4-mbstring \
+        php7.4-mysql \
+        php7.4-opcache \
+        php7.4-xml \
+        php7.4-yaml \
+        php7.4-zip
+# Imagemagick & Inkscape
+RUN apt install -q -y \
         imagemagick \
-        # Inkscape is needed if you want to read SVG files created by Inkscape
         inkscape \
-        && pecl install imagick-3.7.0 \
-        && docker-php-ext-enable imagick \
-    # imap
-    && apt-get install -y libc-client-dev libkrb5-dev \
-        && docker-php-ext-configure imap --with-kerberos --with-imap-ssl \
-    # xslt
-    && apt-get install -y libxslt-dev \
-        && docker-php-ext-install xsl \
-    # YAML extension
-    && pecl install yaml-2.0.4 && echo "extension=yaml.so" > /usr/local/etc/php/conf.d/ext-yaml.ini \
-    # zip
-    && apt-get install -y \
-        libzip-dev \
-        zip \
-        && docker-php-ext-install zip \
-    # Purge apt
-    && apt-get clean -y && apt-get autoclean -y && apt-get autoremove -y \
-        && rm -rf /var/lib/apt/lists/*
+        libmagickwand-dev --no-install-recommends \
+        php7.4-imagick
+# PECL
+RUN apt install -q -y \
+        autoconf \
+        php-pear \
+        php7.4-dev \
+        zlib1g-dev \
+    # Yaml (PECL)
+    && yes '' | pecl install yaml-2.2.2 \
+        && echo 'extension=yaml.so' >> /etc/php/7.4/apache2/php.ini \
+        && echo 'extension=yaml.so' >> /etc/php/7.4/cli/php.ini \
+    # Apcu (PECL)
+    && yes '' | pecl install apcu-5.1.18 \
+        && echo 'extension=apcu.so' >> /etc/php/7.4/apache2/php.ini \
+        && echo 'extension=apcu.so' >> /etc/php/7.4/cli/php.ini
 
 # To write files in the mounted volume
 WORKDIR "/app"

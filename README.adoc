@@ -8,7 +8,7 @@
 
 == Build the image
 
-* 7.4-large: includes libraries for dynamic image generation such as needed in Quoteguy
+* 7.4-large: includes exact same libraries as used in the Quoteguy web app, notably libraries for dynamic image generation
 
 ----
 docker build -f Dockerfile.7-4-large \
@@ -21,9 +21,14 @@ docker build -f Dockerfile.7-4-large \
 To create a permanent Bash alias:
 
 * Open `~/.bash_aliases` (create if does not exist)
-* Append `alias php='docker container run --rm -v $(pwd):/app/ --user $(id -u):$(id -g) php-cli:7.4-large'`
+* Append `alias php1='docker container run --rm -v $(pwd):/app/ --user $(id -u):$(id -g) php-cli:7.4-large'`
 * Save and close the file
 * Activate alias by executing `source ~/.bash_aliases`
+
+== Tests
+
+php1 -f tests/inkscape.php
+php1 -f tests/yaml.php
 
 == Executing scripts
 
